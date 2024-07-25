@@ -162,4 +162,4 @@ def dqasp2dqbf(aspfilelist, outfile):
     
 
 
-dqasp2dqbf(['try.lp', 'try.lp'], 'game.dqdimacs')
+# dqasp2dqbf(['try.lp', 'try.lp'], 'game.dqdimacs')
