@@ -125,6 +125,9 @@ def dqasp2dqbf(aspfilelist, outfile):
                         if i == 0:
                             print(quant[i][1], end='', file=ot)
                         elif quant[i][1] != quant[i-1][1]:
+                            if quant[i][0] == quant[i-1][0]:
+                                print('ERROR! Cannot quantify different variables existentially and universally on the same level!', file=sys.stderr)
+                                exit(1)
                             print(' 0', file=ot)
                             print(quant[i][1], end='', file=ot)
 
