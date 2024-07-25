@@ -12,6 +12,7 @@
 '''
 
 import sys
+import os
 
 def parse_tuple(content):
     cnt = 0
@@ -33,8 +34,11 @@ def parse_tuple(content):
     
     return elim
 
-def dqasp2dqbf(file):
-    f = open(file, 'r')
+def dqasp2dqbf(aspfile, outfile):
+    cmd = f'clingo --output=smodels {aspfile} | lp2normal2 | lp2lp2 | lp2acyc| lp2sat > game.dimacs'
+    os.system(f"bash -c '{cmd}'")
+    f = open('game.dimacs', 'r')
+    ot = open(outfile, 'w')
     normalexists = {}
     normaluniv = {}
     exists = set()  # existential variables
@@ -50,7 +54,7 @@ def dqasp2dqbf(file):
         if i == 0:
             s = line.split()
             numvar = int(s[2])
-            print(line, end='')
+            print(line, end='', file=ot)
         else:
             s = line.split()
             if s[0] == 'c':
@@ -115,36 +119,35 @@ def dqasp2dqbf(file):
                             if (id2var[i] not in exists) and (id2var[i] not in univ):
                                 quant.append((mx + 1, 'e', i))      
 
-                    # print(quant)
                         
                     for i in range(0, len(quant)):
                         if i == 0:
-                            print(quant[i][1], end='')
+                            print(quant[i][1], end='', file=ot)
                         elif quant[i][1] != quant[i-1][1]:
                             print(' 0')
-                            print(quant[i][1], end='')
+                            print(quant[i][1], end='', file=ot)
 
                         if quant[i][0] < mx + 1:
-                            print(f' {var2id[quant[i][2]]}', end='')
+                            print(f' {var2id[quant[i][2]]}', end='', file=ot)
                         else:
-                            print(f' {quant[i][2]}', end='')     
+                            print(f' {quant[i][2]}', end='', file=ot)     
 
                         if (i == len(quant) - 1):
-                            print(' 0')
+                            print(' 0', file=ot)
                         
                     # deal with dependencies
                     for i in range(0, len(depend)):
                         if i == 0:
-                            print(f'd {var2id[depend[i][0]]} {var2id[depend[i][1]]}', end='') 
+                            print(f'd {var2id[depend[i][0]]} {var2id[depend[i][1]]}', end='', file=ot) 
                         elif depend[i][0] != depend[i-1][0]:
                             print(' 0')
-                            print(f'd {var2id[depend[i][0]]} {var2id[depend[i][1]]}', end='') 
+                            print(f'd {var2id[depend[i][0]]} {var2id[depend[i][1]]}', end='', file=ot) 
                         else:
-                            print(f' {var2id[depend[i][1]]}')
+                            print(f' {var2id[depend[i][1]]}', file=ot)
                         if i == len(depend) - 1:
-                            print(' 0')
+                            print(' 0', file=ot)
 
-                print(line, end='')
+                print(line, end='', file=ot)
                 status = 1
         i += 1
     
@@ -154,8 +157,8 @@ def dqasp2dqbf(file):
 
 
     f.close()
-
+    ot.close()
     
 
 
-dqasp2dqbf('sample.dimacs')
+dqasp2dqbf('try.lp', 'game.dqdimacs')
