@@ -27,11 +27,11 @@ def asp_encoding(inputfile, T, player, opponent, outfile):
                     print('not ', end='', file=f)
                 if k == tol - 1:
                     if i == 0:
-                        print(f'moveL2({opponent},{k+1}' + '), ' + f'legal({opponent}, {moveL[j]}), not terminal.', file=f)
+                        print(f'moveL2({k+1}' + '), ' + f'legal({opponent}, {moveL[j]}), not terminal.', file=f)
                     else:
-                        print(f'moveL2({opponent},{k+1}' + '), ' + f'legal({opponent}, {moveL[j]}), not terminal.', file=f)
+                        print(f'moveL2({k+1}' + '), ' + f'legal({opponent}, {moveL[j]}), not terminal.', file=f)
                 else:
-                    print(f'moveL2({opponent},{k+1}' + '), ', end='', file=f)
+                    print(f'moveL2({k+1}' + '), ', end='', file=f)
         j += 1
     
     print(file=f)
