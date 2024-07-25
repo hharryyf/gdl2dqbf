@@ -34,8 +34,9 @@ def parse_tuple(content):
     
     return elim
 
-def dqasp2dqbf(aspfile, outfile):
-    cmd = f'clingo --output=smodels {aspfile} | lp2normal2 | lp2lp2 | lp2acyc| lp2sat > game.dimacs'
+def dqasp2dqbf(aspfilelist, outfile):
+    aspfilelist = ' '.join(aspfilelist)
+    cmd = f'clingo --output=smodels {aspfilelist} | lp2normal2 | lp2lp2 | lp2acyc| lp2sat > game.dimacs'
     os.system(f"bash -c '{cmd}'")
     f = open('game.dimacs', 'r')
     ot = open(outfile, 'w')
@@ -124,7 +125,7 @@ def dqasp2dqbf(aspfile, outfile):
                         if i == 0:
                             print(quant[i][1], end='', file=ot)
                         elif quant[i][1] != quant[i-1][1]:
-                            print(' 0')
+                            print(' 0', file=ot)
                             print(quant[i][1], end='', file=ot)
 
                         if quant[i][0] < mx + 1:
@@ -140,7 +141,7 @@ def dqasp2dqbf(aspfile, outfile):
                         if i == 0:
                             print(f'd {var2id[depend[i][0]]} {var2id[depend[i][1]]}', end='', file=ot) 
                         elif depend[i][0] != depend[i-1][0]:
-                            print(' 0')
+                            print(' 0', file=ot)
                             print(f'd {var2id[depend[i][0]]} {var2id[depend[i][1]]}', end='', file=ot) 
                         else:
                             print(f' {var2id[depend[i][1]]}', file=ot)
@@ -161,4 +162,4 @@ def dqasp2dqbf(aspfile, outfile):
     
 
 
-dqasp2dqbf('try.lp', 'game.dqdimacs')
+dqasp2dqbf(['try.lp', 'try.lp'], 'game.dqdimacs')
