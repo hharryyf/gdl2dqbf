@@ -1,8 +1,11 @@
 from clyngor import ASP, solve
+from dqasp2dqbf import dqasp2dqbf
+import os
+import sys
 
 def asp_encoding(inputfile, T, player, opponent, outfile):
     f = open(outfile, 'w')
-    # log-encoding
+    ################ log-encoding #################
     answer = solve(inputfile, inline='#show input/2.')
     moveL = set()
     for ans in answer:
@@ -35,7 +38,7 @@ def asp_encoding(inputfile, T, player, opponent, outfile):
         j += 1
     
     print(file=f)
-
+    ####################################################
     print(f'tdom(0..{T-1}).', file=f)
     print('{t1(I)} :- tdom(I).', file=f)
     print('{t2(I)} :- tdom(I).', file=f)
@@ -76,8 +79,8 @@ def asp_encoding(inputfile, T, player, opponent, outfile):
     print(':- not neqt, not neqs, not neqa, base(F), not true(F), true2(F).', file=f)
     print('1 {does(R, M) : input(R, M)} 1 :- not terminal.', file=f)
     print(':- not legal(R, M), does(R, M).', file=f)
-    print(':- succ, not neqsx, not next(F), true2(F), base(F).', file=f)
-    print(':- succ, not neqsx, next(F), not true2(F), base(F).', file=f)
+    print(':- succtime, not neqsx, not next(F), true2(F), base(F).', file=f)
+    print(':- succtime, not neqsx, next(F), not true2(F), base(F).', file=f)
     print('neqsx :- base(F), true(F), not s2(F).', file=f)
     print('neqsx :- base(F), not true(F), s2(F).', file=f)
     
@@ -89,9 +92,46 @@ def asp_encoding(inputfile, T, player, opponent, outfile):
     print('nopp(I) :- not t1(I), tdom(I).', file=f)
     print('nopp(I) :- t2(I), tdom(I).', file=f)
     print('nopp(J) :- nopp(I), leq(J, I).', file=f)
-    print('succ :- nsame(I), not nsame(I-1), nopp(I), not nopp(I+1), t2(I), not t1(I), tdom(I).', file=f)
-
+    print('succtime :- nsame(I), not nsame(I-1), nopp(I), not nopp(I+1), t2(I), not t1(I), tdom(I).', file=f)
 
     f.close()
+
+def quantification(aspfilelist, player, opponent, outfile):
+    aspfilelist = ' '.join(aspfilelist)
+    cmd = f'clingo --output=smodels {aspfilelist}  > encoding.smodels'
+    os.system(f"bash -c '{cmd}'")    
+    special = ['nopp', 'nsame', 'succtime', 'neqt', 'neqa', 'neqsx', 'neqs', 'true2']
+    univ = ['t1', 't2', 's1', 'moveL1', 'moveL2', 's2']
+    f = open('encoding.smodels', 'r')
+    
+    f.close()
+
+    outfile = open(outfile, 'w')
+    # all static atoms that are not special/univ are quantified existentially at level 0
+    print('_forall(t1(T), 1) :- tdom(T).', file=outfile)
+    print('_forall(s1(F), 1) :- base(F).', file=outfile)
+    print('_forall(moveL1(M), 1) :- ldom(M).', file=outfile)
+    # all atoms that depend on true and does_x but not moveL2, existentially at level 2
+    print('_forall(moveL2(M), 3) :- ldom(M).', file=outfile)
+    # all atoms that depend on does_o, existentially at level 4
+    print('_exists(neqa, 4).', file=outfile)
+    print('_forall(t2(T), 5) :- tdom(T).', file=outfile)
+    print('_exists(succtime, 6).', file=outfile)
+    print('_exists(nsame(T), 6) :- tdom(T).', file=outfile)
+    print('_exists(nopp(T), 6) :- tdom(T).', file=outfile)
+    print('_exists(neqt, 6).', file=outfile)
+    print('_forall(s2(F), 7) :- base(F).', file=outfile)
+    print('_exists(neqs, 8).', file=outfile)
+    print('_exists(neqsx, 8).', file=outfile)
+    # specify partial dependencies
+    print('_depend(true2(F), t2(T)) :- base(F), tdom(T).', file=outfile)
+    print('_depend(true2(F), s2(F)) :- base(F), base(F).', file=outfile)
+    print('_depend(true2(F), moveL2(M)) :- base(F), ldom(M).', file=outfile)
+    outfile.close()
+
+def gdl2dqasp(inputfile, T, player, opponent, outfile):
+    asp_encoding(inputfile, T, player, opponent, 'encoding.asp')
+    quantification([inputfile, 'encoding.asp'], player, opponent, 'quantification.asp')
+    dqasp2dqbf([inputfile, 'encoding.asp', 'quantification.asp'], 'game.dqdimacs')
 
 asp_encoding('SinglePlayer/Translations/tic-tac-toe.asp', 1, 'xplayer', 'oplayer', 'out.txt')
