@@ -46,8 +46,8 @@ def asp_encoding(inputfile, T, player, opponent, outfile):
     print('{s2(F)} :- base(F).', file=f)
     print('{true(F)} :- base(F).', file=f)
     print('{true2(F)} :- base(F).', file=f)
-    print('{moveL1(F)} :- ldom(M).', file=f)
-    print('{moveL2(F)} :- ldom(M).', file=f)
+    print('{moveL1(M)} :- ldom(M).', file=f)
+    print('{moveL2(M)} :- ldom(M).', file=f)
 
     print(':- ', end='', file=f)
     for i in range(0, T):
@@ -103,7 +103,8 @@ def quantification(aspfilelist, player, opponent, outfile):
     special = ['nopp', 'nsame', 'succtime', 'neqt', 'neqa', 'neqsx', 'neqs', 'true2']
     univ = ['t1', 't2', 's1', 'moveL1', 'moveL2', 's2']
     f = open('encoding.smodels', 'r')
-    
+    for line in f:
+        pass
     f.close()
 
     outfile = open(outfile, 'w')
@@ -134,4 +135,4 @@ def gdl2dqasp(inputfile, T, player, opponent, outfile):
     quantification([inputfile, 'encoding.asp'], player, opponent, 'quantification.asp')
     dqasp2dqbf([inputfile, 'encoding.asp', 'quantification.asp'], 'game.dqdimacs')
 
-asp_encoding('SinglePlayer/Translations/tic-tac-toe.asp', 1, 'xplayer', 'oplayer', 'out.txt')
+gdl2dqasp('SinglePlayer/Translations/tic-tac-toe.asp', 1, 'xplayer', 'oplayer', 'out.txt')
