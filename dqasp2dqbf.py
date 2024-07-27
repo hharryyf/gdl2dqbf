@@ -65,14 +65,14 @@ def dqasp2dqbf(aspfilelist, outfile):
                         if s[2][:7] == '_exists':
                             quant.append((int(quantifier[1]), 'e', quantifier[0]))
                             exists.add(quantifier[0])
-                            if quantifier[0] in normalexists.keys():
+                            if quantifier[0] in normalexists:
                                 print(f'ERROR! Cannot quantify {quantifier[0]} in different level!', file=sys.stderr)
                                 exit(1)
                             normalexists[quantifier[0]] = int(quantifier[1])
                         elif s[2][:7] == '_forall':
                             quant.append((int(quantifier[1]), 'a', quantifier[0]))
                             univ.add(quantifier[0])
-                            if quantifier[0] in normaluniv.keys():
+                            if quantifier[0] in normaluniv:
                                 print(f'ERROR! Cannot quantify {quantifier[0]} in different level!', file=sys.stderr)
                                 exit(1)
                             normaluniv[quantifier[0]] = int(quantifier[1])
@@ -114,7 +114,7 @@ def dqasp2dqbf(aspfilelist, outfile):
                         mx = quant[-1][0]
 
                     for i in range(1, numvar + 1):
-                        if i not in id2var.keys():
+                        if i not in id2var:
                             quant.append((mx + 1, 'e', i))
                         else:
                             if (id2var[i] not in exists) and (id2var[i] not in univ):
@@ -147,7 +147,7 @@ def dqasp2dqbf(aspfilelist, outfile):
                             print(' 0', file=ot)
                             print(f'd {var2id[depend[i][0]]} {var2id[depend[i][1]]}', end='', file=ot) 
                         else:
-                            print(f' {var2id[depend[i][1]]}', file=ot)
+                            print(f' {var2id[depend[i][1]]}', end='', file=ot)
                         if i == len(depend) - 1:
                             print(' 0', file=ot)
 

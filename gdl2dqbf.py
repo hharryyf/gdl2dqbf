@@ -96,18 +96,81 @@ def asp_encoding(inputfile, T, player, opponent, outfile):
 
     f.close()
 
+# helper function, return all atoms that depend on predicate_list (given as a prefix), 
+# and not in blacklist, given the list of the smodels file
+def get_dependency(predicate_list, blacklist, smodelfile):
+    # code for building the dependency
+    f = open(smodelfile, 'r')
+    status = 0
+    edge = set()
+    graph = {}
+    var2id = {}
+    id2var = {}
+    result = []
+    for line in f:
+        line = line.strip()
+        if line == '0':
+            status += 1
+            continue
+        if status == 0:
+            line = list(map(int, line.split()))
+            if line[0] == 1:
+                    head = line[1]
+                    for i in range(4, len(line)):
+                        if line[i] == 1:
+                            print('Unexpected Error')
+                            exit(1)
+                        edge.add((line[i], head))
+            # head number_of_lit number_of_neg_lit bound [negative lit] [positive lit]
+            elif line[0] == 2:
+                head = line[1]
+                for i in range(5, len(line)):
+                    edge.add((line[i], head))
+            # number_of_head [head] number_of_lit number_of_neg_lit [negative lit] [positive lit]
+            elif line[0] == 3:
+                head_num = line[1]
+                head = []
+                for i in range(2, head_num + 2):
+                    head.append(line[i])
+                # this part can be optimized
+                for i in range(head_num + 4, len(line)):
+                    for h in head:
+                        edge.add((line[i], h))
+            else:
+                print('ERROR! Cannot handle rules of type >= 4', file=sys.stderr)
+                exit(1)
+        elif status == 1:
+            line = line.split()
+            vid, atom = int(line[0]), line[1]
+            var2id[atom] = vid 
+            id2var[vid] = atom
+    
+    if len(predicate_list) == 0:
+        result = list(var2id.keys())
+    else:
+        for e in edge:
+            if e[0] not in graph:
+                graph[e[0]] = []
+            graph[e[0]].append(e[1])
+        
+        # use BFS to get the dependencies
+
+    f.close()
+
+    return result
+
 def quantification(aspfilelist, player, opponent, outfile):
     aspfilelist = ' '.join(aspfilelist)
     cmd = f'clingo --output=smodels {aspfilelist}  > encoding.smodels'
     os.system(f"bash -c '{cmd}'")    
-    special = ['nopp', 'nsame', 'succtime', 'neqt', 'neqa', 'neqsx', 'neqs', 'true2']
-    univ = ['t1', 't2', 's1', 'moveL1', 'moveL2', 's2']
-    f = open('encoding.smodels', 'r')
-    for line in f:
-        pass
-    f.close()
+    
+    
+    
+    special = ['nopp', 'nsame', 'succtime', 'neqt', 'neqa', 'neqsx', 'neqs', 'true2', 't1', 't2', 's1', 'moveL1', 'moveL2', 's2']
 
+    
     outfile = open(outfile, 'w')
+    
     # all static atoms that are not special/univ are quantified existentially at level 0
     print('_forall(t1(T), 1) :- tdom(T).', file=outfile)
     print('_forall(s1(F), 1) :- base(F).', file=outfile)
