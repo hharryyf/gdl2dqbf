@@ -2,6 +2,7 @@ from clyngor import ASP, solve
 from dqasp2dqbf import dqasp2dqbf
 import os
 import sys
+import queue
 
 def asp_encoding(inputfile, T, player, opponent, outfile):
     f = open(outfile, 'w')
@@ -146,7 +147,14 @@ def get_dependency(predicate_list, blacklist, smodelfile):
             id2var[vid] = atom
     
     if len(predicate_list) == 0:
-        result = list(var2id.keys())
+        for e in var2id.keys():
+            ok = True
+            for bad in blacklist:
+                if e[:len(bad)] == bad:
+                    ok = False
+                    break
+            if ok == True:
+                result.append(e)
     else:
         for e in edge:
             if e[0] not in graph:
@@ -154,6 +162,33 @@ def get_dependency(predicate_list, blacklist, smodelfile):
             graph[e[0]].append(e[1])
         
         # use BFS to get the dependencies
+        q = queue.Queue()
+        visited = set()
+        for v, name in id2var.items():
+            for s in predicate_list:
+                if name[:len(s)] == s:
+                    q.put(v)
+        
+
+        while q.empty() == False:
+            curr = q.get()
+            if curr in visited:
+                continue 
+            visited.add(curr)
+            if curr in id2var:
+                ok = True
+                name = id2var[curr]
+                for bad in blacklist:
+                    if name[:len(bad)] == bad:
+                        ok = False
+                        break
+                if ok == True:
+                    result.append(name)
+
+            if curr in graph:
+                for v in graph[curr]:
+                    if v not in visited:
+                        q.put(v)
 
     f.close()
 
@@ -167,8 +202,12 @@ def quantification(aspfilelist, player, opponent, outfile):
     
     
     special = ['nopp', 'nsame', 'succtime', 'neqt', 'neqa', 'neqsx', 'neqs', 'true2', 't1', 't2', 's1', 'moveL1', 'moveL2', 's2']
-
-    
+    all_atom = get_dependency([], special, 'encoding.smodels')
+    does_x = get_dependency(['does(','true('], special, 'encoding.smodels')
+    does_o = get_dependency([f'does({opponent},'], special, 'encoding.smodels')
+    #print(all_atom)
+    #print(does_x)
+    #print(does_o)
     outfile = open(outfile, 'w')
     
     # all static atoms that are not special/univ are quantified existentially at level 0
