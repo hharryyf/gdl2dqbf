@@ -202,21 +202,29 @@ def quantification(aspfilelist, player, opponent, outfile):
     
     
     special = ['nopp', 'nsame', 'succtime', 'neqt', 'neqa', 'neqsx', 'neqs', 'true2', 't1', 't2', 's1', 'moveL1', 'moveL2', 's2']
-    all_atom = get_dependency([], special, 'encoding.smodels')
-    does_x = get_dependency(['does(','true('], special, 'encoding.smodels')
-    does_o = get_dependency([f'does({opponent},'], special, 'encoding.smodels')
+    all_atom = set(get_dependency([], special, 'encoding.smodels'))
+    does_x = set(get_dependency(['does(','true('], special, 'encoding.smodels'))
+    does_o = set(get_dependency([f'does({opponent},'], special, 'encoding.smodels'))
     #print(all_atom)
     #print(does_x)
     #print(does_o)
     outfile = open(outfile, 'w')
     
     # all static atoms that are not special/univ are quantified existentially at level 0
+    for e in all_atom:
+        if e not in does_x:
+            print(f'_exists({e}, 0).', file=outfile)
     print('_forall(t1(T), 1) :- tdom(T).', file=outfile)
     print('_forall(s1(F), 1) :- base(F).', file=outfile)
     print('_forall(moveL1(M), 1) :- ldom(M).', file=outfile)
     # all atoms that depend on true and does_x but not moveL2, existentially at level 2
+    for e in does_x:
+        if e not in does_o:
+            print(f'_exists({e}, 2).', file=outfile)
     print('_forall(moveL2(M), 3) :- ldom(M).', file=outfile)
     # all atoms that depend on does_o, existentially at level 4
+    for e in does_o:
+        print(f'_exists({e}, 4).', file=outfile)
     print('_exists(neqa, 4).', file=outfile)
     print('_forall(t2(T), 5) :- tdom(T).', file=outfile)
     print('_exists(succtime, 6).', file=outfile)
