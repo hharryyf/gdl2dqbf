@@ -78,12 +78,13 @@ def asp_encoding(inputfile, T, player, opponent, outfile):
     print('neqa :- not moveL1(M), moveL2(M), ldom(M).', file=f)
     print(':- not neqt, not neqs, not neqa, base(F), true(F), not true2(F).', file=f)
     print(':- not neqt, not neqs, not neqa, base(F), not true(F), true2(F).', file=f)
-    print('1 {does(R, M) : input(R, M)} 1 :- not terminal.', file=f)
+    print('1 {does(R, M) : input(R, M)} 1 :- not terminal, role(R).', file=f)
     print(':- not legal(R, M), does(R, M).', file=f)
     print(':- succtime, not neqsx, not next(F), true2(F), base(F).', file=f)
     print(':- succtime, not neqsx, next(F), not true2(F), base(F).', file=f)
     print('neqsx :- base(F), true(F), not s2(F).', file=f)
     print('neqsx :- base(F), not true(F), s2(F).', file=f)
+    print('next(F) :- terminal, base(F), true(F).', file=f)
     
     print('leq(I, I) :- tdom(I). leq(I, I + 1) :- tdom(I + 1), tdom(I).', file=f)
     print('leq(I, K) :- leq(I, J), leq(J, K).', file=f)
@@ -236,13 +237,19 @@ def quantification(aspfilelist, player, opponent, outfile):
     print('_exists(neqsx, 8).', file=outfile)
     # specify partial dependencies
     print('_depend(true2(F), t2(T)) :- base(F), tdom(T).', file=outfile)
-    print('_depend(true2(F), s2(F)) :- base(F), base(F).', file=outfile)
+    print('_depend(true2(F), s2(F)) :- base(F).', file=outfile)
     print('_depend(true2(F), moveL2(M)) :- base(F), ldom(M).', file=outfile)
     outfile.close()
 
 def gdl2dqasp(inputfile, T, player, opponent, outfile):
     asp_encoding(inputfile, T, player, opponent, 'encoding.asp')
     quantification([inputfile, 'encoding.asp'], player, opponent, 'quantification.asp')
-    dqasp2dqbf([inputfile, 'encoding.asp', 'quantification.asp'], 'game.dqdimacs')
+    dqasp2dqbf([inputfile, 'encoding.asp', 'quantification.asp'], outfile)
 
-gdl2dqasp('SinglePlayer/Translations/tic-tac-toe.asp', 1, 'xplayer', 'oplayer', 'out.txt')
+
+if __name__ == "__main__":
+    if len(sys.argv) != 6:
+        print('Usage: python [path to the game.asp] [log(depth) of the game] [first player] [second player] [output file]')
+        exit(1)
+    gdl2dqasp(sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4], sys.argv[5])
+#gdl2dqasp('SinglePlayer/Translations/tic-tac-toe.asp', 1, 'xplayer', 'oplayer', 'out.txt')
