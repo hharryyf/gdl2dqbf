@@ -4,7 +4,7 @@ does(o, l) :- not moveL2(1), not moveL2(2), legal(o, l), not terminal.
 does(o, noop) :- moveL2(1), not moveL2(2), legal(o, noop), not terminal.
 does(o, r) :- not moveL2(1), moveL2(2), legal(o, r), not terminal.
 
-tdom(0..1).
+tdom(0..0).
 {t1(I)} :- tdom(I).
 {t2(I)} :- tdom(I).
 {s1(F)} :- base(F).
@@ -13,10 +13,10 @@ tdom(0..1).
 {true2(F)} :- base(F).
 {moveL1(M)} :- ldom(M).
 {moveL2(M)} :- ldom(M).
-:- not t1(0), not t1(1), base(F), not true(F), init(F).
-:- not t1(0), not t1(1), base(F), true(F), not init(F).
-:- t1(0), t1(1), not terminal.
-:- t1(0), t1(1), not goal(x, 100).
+:- not t1(0), base(F), not true(F), init(F).
+:- not t1(0), base(F), true(F), not init(F).
+:- t1(0), not terminal.
+:- t1(0), not goal(x, 100).
 neqt :- t1(T), not t2(T), tdom(T).
 neqt :- not t1(T), t2(T), tdom(T).
 neqs :- s1(F), not s2(F), base(F).

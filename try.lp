@@ -1,5 +1,5 @@
 
-tdom(0..5).
+tdom(0..0).
 
 _exists(tdom(0), 0).
 _forall(tdom(1), 1).
