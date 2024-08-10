@@ -9,15 +9,15 @@ base(cell(X,Y,o)) :- index(X), index(Y).
 base(control(P)) :- role(P).
 input(P, mark(X, Y)) :- index(X), index(Y), role(P).
 input(P, noop) :- role(P).
-init(cell(1, 1, x)).
-init(cell(1, 2, o)).
-init(cell(1, 3, o)).
+init(cell(1, 1, b)).
+init(cell(1, 2, b)).
+init(cell(1, 3, b)).
 init(cell(2, 1, b)).
-init(cell(2, 2, x)).
+init(cell(2, 2, b)).
 init(cell(2, 3, b)).
-init(cell(3, 1, x)).
+init(cell(3, 1, b)).
 init(cell(3, 2, b)).
-init(cell(3, 3, o)).
+init(cell(3, 3, b)).
 init(control(xplayer)).
 next(cell(M, N, x)) :- does(xplayer, mark(M, N)), true(cell(M, N, b)), not terminal.
 next(cell(M, N, o)) :- does(oplayer, mark(M, N)), true(cell(M, N, b)), not terminal.

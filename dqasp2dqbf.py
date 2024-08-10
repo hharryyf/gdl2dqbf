@@ -119,22 +119,42 @@ def dqasp2dqbf(aspfilelist, outfile):
                         else:
                             if (id2var[i] not in exists) and (id2var[i] not in univ):
                                 quant.append((mx + 1, 'e', i))      
-
+                    # allu = []
+                    # for i in range(0, len(quant)):
+                    #      if quant[i][1] == 'a':
+                    #         allu.append(var2id[quant[i][2]])
+                    
+                    # if len(allu) != 0:
+                    #      print(f'a', end = '', file=ot)
+                    #      for u in allu:    
+                    #          print(f' {u}', end='', file=ot)
+                    #      print(f' 0', file=ot)
                         
+                    # currentuniv = []
                     for i in range(0, len(quant)):
+                        # if quant[i][1] == 'a':
+                        #     currentuniv.append(var2id[quant[i][2]])
+                        # else:
+                        #     if quant[i][0] < mx + 1:
+                        #         print(f'd {var2id[quant[i][2]]}', end='', file=ot)
+                        #     else:
+                        #         print(f'd {quant[i][2]}', end='', file=ot)
+                        #     for vv in currentuniv:
+                        #         print(f' {vv}', end='', file=ot)
+                        #     print(' 0', file=ot)
                         if i == 0:
-                            print(quant[i][1], end='', file=ot)
+                             print(quant[i][1], end='', file=ot)
                         elif quant[i][1] != quant[i-1][1]:
-                            if quant[i][0] == quant[i-1][0]:
-                                print('ERROR! Cannot quantify different variables existentially and universally on the same level!', file=sys.stderr)
-                                exit(1)
-                            print(' 0', file=ot)
-                            print(quant[i][1], end='', file=ot)
+                             if quant[i][0] == quant[i-1][0]:
+                                 print('ERROR! Cannot quantify different variables existentially and universally on the same level!', file=sys.stderr)
+                                 exit(1)
+                             print(' 0', file=ot)
+                             print(quant[i][1], end='', file=ot)
 
                         if quant[i][0] < mx + 1:
-                            print(f' {var2id[quant[i][2]]}', end='', file=ot)
+                             print(f' {var2id[quant[i][2]]}', end='', file=ot)
                         else:
-                            print(f' {quant[i][2]}', end='', file=ot)     
+                             print(f' {quant[i][2]}', end='', file=ot)     
 
                         if (i == len(quant) - 1):
                             print(' 0', file=ot)

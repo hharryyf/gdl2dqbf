@@ -1,10 +1,12 @@
-ldom(1..2).
+ldom(1..3).
 % log-encoding
-does(o, l) :- not moveL2(1), not moveL2(2), legal(o, l), not terminal.
-does(o, noop) :- moveL2(1), not moveL2(2), legal(o, noop), not terminal.
-does(o, r) :- not moveL2(1), moveL2(2), legal(o, r), not terminal.
+does(oplayer, drop(1)) :- not moveL2(1), not moveL2(2), not moveL2(3), legal(oplayer, drop(1)), not terminal.
+does(oplayer, drop(2)) :- moveL2(1), not moveL2(2), not moveL2(3), legal(oplayer, drop(2)), not terminal.
+does(oplayer, drop(3)) :- not moveL2(1), moveL2(2), not moveL2(3), legal(oplayer, drop(3)), not terminal.
+does(oplayer, drop(4)) :- moveL2(1), moveL2(2), not moveL2(3), legal(oplayer, drop(4)), not terminal.
+does(oplayer, noop) :- not moveL2(1), not moveL2(2), moveL2(3), legal(oplayer, noop), not terminal.
 
-tdom(0..0).
+tdom(0..3).
 {t1(I)} :- tdom(I).
 {t2(I)} :- tdom(I).
 {s1(F)} :- base(F).
@@ -13,10 +15,10 @@ tdom(0..0).
 {true2(F)} :- base(F).
 {moveL1(M)} :- ldom(M).
 {moveL2(M)} :- ldom(M).
-:- not t1(0), base(F), not true(F), init(F).
-:- not t1(0), base(F), true(F), not init(F).
-:- t1(0), not terminal.
-:- t1(0), not goal(x, 100).
+:- not t1(0), not t1(1), not t1(2), not t1(3), base(F), not true(F), init(F).
+:- not t1(0), not t1(1), not t1(2), not t1(3), base(F), true(F), not init(F).
+:- t1(0), t1(1), t1(2), t1(3), not terminal.
+:- t1(0), t1(1), t1(2), t1(3), not goal(xplayer, 100).
 neqt :- t1(T), not t2(T), tdom(T).
 neqt :- not t1(T), t2(T), tdom(T).
 neqs :- s1(F), not s2(F), base(F).

@@ -3,6 +3,7 @@ from dqasp2dqbf import dqasp2dqbf
 import os
 import sys
 import queue
+from bisect import bisect_left
 
 def asp_encoding(inputfile, T, player, opponent, outfile):
     f = open(outfile, 'w')
@@ -228,23 +229,128 @@ def quantification(aspfilelist, player, opponent, outfile):
         print(f'_exists({e}, 4).', file=outfile)
     print('_exists(neqa, 4).', file=outfile)
     print('_forall(t2(T), 5) :- tdom(T).', file=outfile)
-    print('_exists(succtime, 6).', file=outfile)
-    print('_exists(nsame(T), 6) :- tdom(T).', file=outfile)
-    print('_exists(nopp(T), 6) :- tdom(T).', file=outfile)
-    print('_exists(neqt, 6).', file=outfile)
     print('_forall(s2(F), 7) :- base(F).', file=outfile)
     print('_exists(neqs, 8).', file=outfile)
     print('_exists(neqsx, 8).', file=outfile)
     # specify partial dependencies
+
+    print('_depend(succtime, t1(T)) :- tdom(T).', file=outfile)
+    print('_depend(succtime, t2(T)) :- tdom(T).', file=outfile)
+    print('_depend(nsame(T), t1(P)) :- tdom(T), tdom(P).', file=outfile)
+    print('_depend(nsame(T), t2(P)) :- tdom(T), tdom(P).', file=outfile)
+    print('_depend(nopp(T), t1(P)) :- tdom(T), tdom(P).', file=outfile)
+    print('_depend(nopp(T), t2(P)) :- tdom(T), tdom(P).', file=outfile)
+    print('_depend(neqt, t1(T)) :- tdom(T).', file=outfile)
+    print('_depend(neqt, t2(T)) :- tdom(T).', file=outfile)
+    #print('_exists(nopp(T), 6) :- tdom(T).', file=outfile)
+    #print('_exists(neqt, 6).', file=outfile)
     print('_depend(true2(F), t2(T)) :- base(F), tdom(T).', file=outfile)
     print('_depend(true2(F), s2(G)) :- base(F), base(G).', file=outfile)
     print('_depend(true2(F), moveL2(M)) :- base(F), ldom(M).', file=outfile)
     outfile.close()
 
+
+def simplify(infile, outfile):
+    f = open(infile, 'r')
+    ot = open(outfile, 'w')
+    assign = set()
+    unit = []
+    ok = []
+    clause = []
+    var2id = {}
+    for line in f:
+        if line[0] != 'p' and line[0] != 'e' and line[0] != 'a' and line[0] != 'd':
+            line = line.split()
+            line.pop()
+            line = list(map(int, line))
+            st = set()
+            for v in line:
+                if v not in var2id:
+                    var2id[v] = []
+                var2id[v].append(len(clause))
+                st.add(v)
+                if len(line) == 1:
+                    unit.append(v)
+            if len(st) == 0:
+                print('The instance contains empty clause\nUNSAT', file=sys.stderr)
+                exit(0)
+            clause.append(st)
+            ok.append(0)             
+    
+    while len(unit) > 0:
+        v = unit.pop()
+        for id in var2id[v]:
+            if ok[id] == 1:
+                continue
+            if v in clause[id]:
+                ok[id] = 1
+            elif -v in clause[id]:
+                clause[id].remove(-v)
+                if len(clause[id]) == 0:
+                    print('Instance is trivially false\nUNSAT', file=sys.stderr)
+                    exit(0)
+                if len(clause[id]) == 1:
+                    unit.add(list(clause[id])[0])
+    
+    f.close()
+
+    st = set()
+    for i in range(0, len(clause)):
+        if ok[i] == 1:
+            continue
+        for v in clause[i]:
+            st.add(abs(v))
+    
+    lst = list(st)
+    lst.sort()
+    
+    numclause = 0
+    for i in range(0, len(clause)):
+        if ok[i] == 1:
+            continue
+        numclause += 1
+    
+    print(f'p cnf {len(lst)} {numclause}', file=ot)
+
+    f = open(infile, 'r')
+
+    for line in f:
+        if line[0] == 'e' or line[0] == 'a' or line[0] == 'd':
+            line = line.split()
+            good = 0
+            for v in line[1:]:
+                v = int(v)
+                if v != 0 and v in st:
+                    good = 1
+                    break
+            if good == 1:
+                print(line[0], end=' ', file=ot)
+                for v in line[1:]:
+                    v = int(v)
+                    if v == 0:
+                        print('0', file=ot)
+                    else:
+                        if v in st:
+                            print((bisect_left(lst, abs(v)) + 1) * (abs(v) // v), end=' ', file=ot)
+    f.close()
+
+
+    for i in range(0, len(clause)):
+        if ok[i] == 1:
+            continue
+        for v in clause[i]:
+            print((bisect_left(lst, abs(v)) + 1) * (abs(v) // v), end=' ', file=ot)
+        print('0', file=ot)
+
+    ot.close()
+
+
+
 def gdl2dqasp(inputfile, T, player, opponent, outfile):
     asp_encoding(inputfile, T, player, opponent, 'encoding.lp')
     quantification([inputfile, 'encoding.lp'], player, opponent, 'quantification.lp')
-    dqasp2dqbf([inputfile, 'encoding.lp', 'quantification.lp'], outfile)
+    dqasp2dqbf([inputfile, 'encoding.lp', 'quantification.lp'], 'game.dqdimacs')
+    simplify('game.dqdimacs', outfile)
 
 
 if __name__ == "__main__":
